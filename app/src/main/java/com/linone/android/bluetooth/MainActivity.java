@@ -40,10 +40,11 @@ public class MainActivity extends AppCompatActivity {
     private List<BluetoothDevice> DEVL = new ArrayList<BluetoothDevice>();
     private static final UUID MYUUID=UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private TextView Hz,f;
-    private int i=0,fp = 1;
+    private int i=0,fp = 5;
     private int hz=1;
     private BluetoothSocket S;
     private OutputStream os;
+    private boolean conF = false;
     private BroadcastReceiver BTReceiver = new BroadcastReceiver(){
         @Override
         public void onReceive(Context context,Intent intent){
@@ -123,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
         DevL.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                if(conF == true) close();
                 link(i);
                 return false;
             }
@@ -205,8 +207,8 @@ public class MainActivity extends AppCompatActivity {
                     S.connect();
                     os = S.getOutputStream();
                     //if(os!=null) os.write("OK".getBytes("ASCII"));
+                }catch (IOException e){
 
-                }catch (Exception e){
                 }
                 runOnUiThread(new Runnable() {
                     @Override
@@ -220,9 +222,23 @@ public class MainActivity extends AppCompatActivity {
                             fa.setEnabled(true);
                             Hza.setEnabled(true);
                             Hzs.setEnabled(true);
+                            conF = true;
                         }
+                        else conF = false;
                     }
                 });
+            }
+        }).start();
+    }
+    private void close(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    S.close();
+                }catch (IOException e){
+
+                }
             }
         }).start();
     }
@@ -238,4 +254,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //.makeText(this, "onDestroy", Toast.LENGTH_LONG).show();
+        unregisterReceiver(BTReceiver);
+    }
+
 }
+
