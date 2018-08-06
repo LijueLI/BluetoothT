@@ -10,11 +10,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.os.Handler;
+import android.os.Message;
 import android.os.ParcelUuid;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -30,6 +34,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothSocket S;
     private OutputStream os;
     private boolean conF = false;
+    private View cv = null;
     private BroadcastReceiver BTReceiver = new BroadcastReceiver(){
         @Override
         public void onReceive(Context context,Intent intent){
@@ -121,12 +129,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        DevL.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        DevL.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 if(conF == true) close();
+                if(cv == null || cv!=view) {
+                    view.setBackgroundColor(Color.parseColor("#9E9E9E"));
+                    if(cv!=null) cv.setBackgroundColor(Color.parseColor("#FFFFFF"));
+                    cv = view;
+                }
                 link(i);
-                return false;
             }
         });
 
@@ -157,12 +169,24 @@ public class MainActivity extends AppCompatActivity {
         Hza.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(hz < 100){
+                if(hz < 200){
                     hz+=1;
                 }
                 sendmsg("H"+String.format("%03d",hz));
                 double H = (double)hz/2;
                 Hz.setText(Double.toString(H)+" Hz");
+            }
+        });
+        Hza.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if(motionEvent.getAction() == MotionEvent.ACTION_DOWN){
+                    updateAddOrSubtract(view.getId());
+                }
+                else if(motionEvent.getAction() == MotionEvent.ACTION_UP){
+                    stopAddOrSubtract();
+                }
+                return true;
             }
         });
         Hzs.setOnClickListener(new View.OnClickListener() {
@@ -174,6 +198,18 @@ public class MainActivity extends AppCompatActivity {
                 sendmsg("H"+String.format("%03d",hz));
                 double H = (double)hz/2;
                 Hz.setText(Double.toString(H)+" Hz");
+            }
+        });
+        Hzs.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if(motionEvent.getAction() == MotionEvent.ACTION_DOWN){
+                    updateAddOrSubtract(view.getId());
+                }
+                else if(motionEvent.getAction() == MotionEvent.ACTION_UP){
+                    stopAddOrSubtract();
+                }
+                return true;
             }
         });
         fa.setOnClickListener(new View.OnClickListener() {
@@ -196,7 +232,6 @@ public class MainActivity extends AppCompatActivity {
                 f.setText(Integer.toString(fp));
             }
         });
-
     }
     private void link(final int i){
         new Thread(new Runnable() {
@@ -260,6 +295,49 @@ public class MainActivity extends AppCompatActivity {
         //.makeText(this, "onDestroy", Toast.LENGTH_LONG).show();
         unregisterReceiver(BTReceiver);
     }
+    private ScheduledExecutorService scheduledExecutor;
+    private void updateAddOrSubtract(int viewId) {
+        final int vid = viewId;
+        scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutor.scheduleWithFixedDelay(new Runnable() {
+            @Override
+            public void run() {
+                Message msg = new Message();
+                msg.what = vid;
+                handler.sendMessage(msg);
+            }
+        }, 0, 100, TimeUnit.MILLISECONDS);
+    }
 
+    private void stopAddOrSubtract() {
+        if (scheduledExecutor != null) {
+            scheduledExecutor.shutdownNow();
+            scheduledExecutor = null;
+        }
+    }
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            int viewId = msg.what;
+            switch (viewId){
+                case R.id.Hzadd:
+                    if(hz < 200){
+                        hz+=1;
+                    }
+                    sendmsg("H"+String.format("%03d",hz));
+                    double H = (double)hz/2;
+                    Hz.setText(Double.toString(H)+" Hz");
+                    break;
+                case R.id.Hzsub:
+                    if(hz > 1){
+                        hz-=1;
+                    }
+                    sendmsg("H"+String.format("%03d",hz));
+                    double Hs = (double)hz/2;
+                    Hz.setText(Double.toString(Hs)+" Hz");
+                    break;
+            }
+        }
+    };
 }
 
