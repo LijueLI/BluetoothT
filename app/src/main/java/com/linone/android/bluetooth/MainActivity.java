@@ -23,8 +23,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
@@ -41,18 +43,19 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity {
 
     private BluetoothAdapter Ba;
-    private Button Bt,Sin,Tri,Rec,Noo,fa,fs,Hza,Hzs;
+    private Button Bt,Sin,Tri,Rec,Noo,fa,fs,Hza,Hzs,Send;
     private ListView DevL;
     private String[] Dev;
     private List<BluetoothDevice> DEVL = new ArrayList<BluetoothDevice>();
     private static final UUID MYUUID=UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private TextView Hz,f;
     private int i=0,fp = 5;
-    private int hz=1;
+    private int hz=5;
     private BluetoothSocket S;
     private OutputStream os;
     private boolean conF = false;
     private View cv = null;
+    private EditText Min;
     private BroadcastReceiver BTReceiver = new BroadcastReceiver(){
         @Override
         public void onReceive(Context context,Intent intent){
@@ -115,6 +118,8 @@ public class MainActivity extends AppCompatActivity {
         Hzs = findViewById(R.id.Hzsub);
         Hz = findViewById(R.id.Hz);
         f = findViewById(R.id.f);
+        Send = findViewById(R.id.Send);
+        Min = findViewById(R.id.Min);
 
 
         Bt.setOnClickListener(new View.OnClickListener() {
@@ -166,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
                 sendmsg("S004");
             }
         });
+
         Hza.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -173,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
                     hz+=1;
                 }
                 sendmsg("H"+String.format("%03d",hz));
-                double H = (double)hz/2;
+                double H = (double)hz;
                 Hz.setText(Double.toString(H)+" Hz");
             }
         });
@@ -196,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
                     hz-=1;
                 }
                 sendmsg("H"+String.format("%03d",hz));
-                double H = (double)hz/2;
+                double H = (double)hz;
                 Hz.setText(Double.toString(H)+" Hz");
             }
         });
@@ -232,6 +238,16 @@ public class MainActivity extends AppCompatActivity {
                 f.setText(Integer.toString(fp));
             }
         });
+        Send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    sendmsg("T" + String.format("%03d", Integer.parseInt(Min.getText().toString())));
+                }catch (NumberFormatException e){
+
+                }
+            }
+        });
     }
     private void link(final int i){
         new Thread(new Runnable() {
@@ -257,6 +273,7 @@ public class MainActivity extends AppCompatActivity {
                             fa.setEnabled(true);
                             Hza.setEnabled(true);
                             Hzs.setEnabled(true);
+                            Send.setEnabled(true);
                             conF = true;
                         }
                         else conF = false;
@@ -325,7 +342,7 @@ public class MainActivity extends AppCompatActivity {
                         hz+=1;
                     }
                     sendmsg("H"+String.format("%03d",hz));
-                    double H = (double)hz/2;
+                    double H = (double)hz;
                     Hz.setText(Double.toString(H)+" Hz");
                     break;
                 case R.id.Hzsub:
@@ -333,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
                         hz-=1;
                     }
                     sendmsg("H"+String.format("%03d",hz));
-                    double Hs = (double)hz/2;
+                    double Hs = (double)hz;
                     Hz.setText(Double.toString(Hs)+" Hz");
                     break;
             }

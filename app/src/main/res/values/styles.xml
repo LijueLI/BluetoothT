@@ -7,5 +7,27 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
+    <style name="btn_style" parent="@style/Widget.AppCompat.Button">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/btn_style</item>
+        <item name="android:padding">10dip</item>
+    </style>
+    <style name="addbtn_style" parent="@style/Widget.AppCompat.Button">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/addbtn_style</item>
+        <item name="android:padding">10dip</item>
+    </style>
+    <style name="subbtn_style" parent="@style/Widget.AppCompat.Button">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/subbtn_style</item>
+        <item name="android:padding">10dip</item>
+    </style>
+
 
 </resources>
